@@ -49,8 +49,12 @@ def main():
                 flash('Purchase price must be greater than 0', 'alert-danger')
                 return redirect(url_for('stocks.main'))
 
-            stock = Stock(stock_symbol, num_of_shares, purchase_price)
-            info = stock.stock_data
+            try:
+                stock = Stock(stock_symbol, num_of_shares, purchase_price)
+                info = stock.stock_data
+            except StockError as e:
+                flash(str(e), 'alert-danger')
+                return redirect(url_for('stocks.main'))
 
             # Check if stock already exists for this user
             existing_stock = StockDb.query.filter_by(
