@@ -24,12 +24,35 @@ Frameworks, tools and libraries used in this project
 ## Getting Started
 Clone using `https://github.com/1cbyc/stocks-manager.git`.
 
-
 ### Install the requirements:
-```
+```bash
 $ pip install -r requirements.txt
 ```
-and use `flask run` to run the app.
+
+### Environment Setup
+1. Copy `env.example` to `.env`:
+```bash
+$ cp env.example .env
+```
+
+2. Edit `.env` and set your configuration values:
+   - `SECRET_KEY`: Generate a secure secret key for Flask sessions
+   - `OKTA_API_TOKEN`: Your Okta API token
+   - `OKTA_URL`: Your Okta organization URL
+   - Other OIDC settings as needed
+
+3. Ensure `client_secrets.json` is configured for Okta OIDC authentication
+
+### Run the app:
+```bash
+$ python run.py
+```
+or
+```bash
+$ flask run
+```
+
+The app will run on `http://127.0.0.1:8001` in development mode.
 
 <!-- CONTRIBUTING -->
 ## Contributing
