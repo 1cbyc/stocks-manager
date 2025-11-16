@@ -9,10 +9,19 @@ stocks_blueprint = Blueprint('stocks', __name__)
 
 @app.before_request
 def before_request():
-    if oidc.user_loggedin:
-        g.user = okta_client.get_user(oidc.user_getfield("sub"))
-
-    else:
+    """Set up user context before each request."""
+    try:
+        if oidc.user_loggedin:
+            user_sub = oidc.user_getfield("sub")
+            if user_sub:
+                g.user = okta_client.get_user(user_sub)
+            else:
+                g.user = None
+        else:
+            g.user = None
+    except Exception as e:
+        # Log error but don't break the request
+        # In production, you'd want to log this properly
         g.user = None
 
 
