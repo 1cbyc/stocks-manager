@@ -66,11 +66,23 @@ def register():
 
 
 @stocks_blueprint.route('/remove_stock', methods=['POST'])
+@oidc.require_login
 def remove_stock():
     if request.method == 'POST':
-        stock_id = request.form['stock_id']
-        StockDb.query.filter_by(id=stock_id).delete()
-        db.session.commit()
+        try:
+            stock_id = request.form['stock_id']
+            stock = StockDb.query.filter_by(id=stock_id).first()
+            
+            if stock:
+                db.session.delete(stock)
+                db.session.commit()
+                flash('Stock removed successfully', 'alert-success')
+            else:
+                flash('Stock not found', 'alert-danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error removing stock: {str(e)}', 'alert-danger')
+        
         return redirect(url_for('stocks.main'))
 
 
