@@ -86,8 +86,9 @@
 
                                 <td>
                                     <form class="del_form" action="remove_stock" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <input type="hidden" name="stock_id" value="{{ stock.id }}"/>
-                                        <button id="trash-btn">
+                                        <button id="trash-btn" type="submit">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </form>
