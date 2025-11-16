@@ -4,7 +4,6 @@ from okta import UsersClient
 from flask_bcrypt import Bcrypt
 from flask_oidc import OpenIDConnect
 from flask_sqlalchemy import SQLAlchemy
-from oauth2client.client import OAuth2Credentials
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
