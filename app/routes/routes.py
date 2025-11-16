@@ -1,10 +1,8 @@
-import requests
-import json
-from app.models.stock import Stock
+from app.models.stock import Stock, StockError
 from app.forms.forms import AddStockForm
 from app.database.database import StockDb
 from app import db, oidc, app, okta_client
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 
 stocks_blueprint = Blueprint('stocks', __name__)
 
@@ -21,34 +19,74 @@ def before_request():
 @stocks_blueprint.route('/main', methods=['GET', 'POST'])
 @oidc.require_login
 def main():
-    stocks = StockDb.query.all()
+    # Get current user ID from Okta
+    user_id = oidc.user_getfield("sub") if oidc.user_loggedin else None
+    
+    if not user_id:
+        flash('Please log in to view your portfolio', 'alert-danger')
+        return redirect(url_for('stocks.login'))
+    
+    # Filter stocks by user_id
+    stocks = StockDb.query.filter_by(user_id=user_id).all()
     total = Stock.get_total(stocks)
     form = AddStockForm()
 
     if request.method == 'POST' and form.validate_on_submit():
-        stock_symbol = request.form['stock_symbol']
-        num_of_shares = request.form['num_of_shares']
-        purchase_price = request.form['purchase_price']
+        try:
+            stock_symbol = request.form['stock_symbol']
+            num_of_shares = request.form['num_of_shares']
+            purchase_price = request.form['purchase_price']
 
-        stock = Stock(stock_symbol, num_of_shares, purchase_price)
-        info = stock.stock_data
+            # Validate input values
+            num_of_shares = float(num_of_shares)
+            purchase_price = float(purchase_price)
+            
+            if num_of_shares <= 0:
+                flash('Number of shares must be greater than 0', 'alert-danger')
+                return redirect(url_for('stocks.main'))
+            
+            if purchase_price <= 0:
+                flash('Purchase price must be greater than 0', 'alert-danger')
+                return redirect(url_for('stocks.main'))
 
-        stock = StockDb(
-            id=info['_id'],
-            full_name=info['full_name'],
-            stock_symbol=info['stock_symbol'],
-            shares=info['shares'],
-            purchase_price=info['purchase_price'],
-            net_buy_price=info['net_buy_price'],
-            logo=info['logo']
-        )
+            stock = Stock(stock_symbol, num_of_shares, purchase_price)
+            info = stock.stock_data
 
-        db.create_all()
-        db.session.add(stock)
-        db.session.commit()
+            # Check if stock already exists for this user
+            existing_stock = StockDb.query.filter_by(
+                user_id=user_id,
+                stock_symbol=info['stock_symbol']
+            ).first()
+            
+            if existing_stock:
+                flash(f'{stock_symbol.upper()} is already in your portfolio', 'alert-warning')
+                return redirect(url_for('stocks.main'))
 
-        flash(f'{stock_symbol.upper()} stock was added successfully', 'alert-success')
-        return redirect(url_for('stocks.main'))
+            stock_db = StockDb(
+                id=info['_id'],
+                user_id=user_id,
+                full_name=info['full_name'],
+                stock_symbol=info['stock_symbol'],
+                shares=info['shares'],
+                purchase_price=info['purchase_price'],
+                net_buy_price=info['net_buy_price'],
+                logo=info['logo'] or ''
+            )
+
+            db.create_all()
+            db.session.add(stock_db)
+            db.session.commit()
+
+            flash(f'{stock_symbol.upper()} stock was added successfully', 'alert-success')
+            return redirect(url_for('stocks.main'))
+            
+        except ValueError as e:
+            flash(f'Invalid input: {str(e)}', 'alert-danger')
+            return redirect(url_for('stocks.main'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding stock: {str(e)}', 'alert-danger')
+            return redirect(url_for('stocks.main'))
 
     return render_template('stocks/table.html', stocks=stocks, Stock=Stock, total=total, form=form)
 
@@ -70,15 +108,21 @@ def register():
 def remove_stock():
     if request.method == 'POST':
         try:
+            user_id = oidc.user_getfield("sub") if oidc.user_loggedin else None
+            if not user_id:
+                flash('Please log in to remove stocks', 'alert-danger')
+                return redirect(url_for('stocks.login'))
+            
             stock_id = request.form['stock_id']
-            stock = StockDb.query.filter_by(id=stock_id).first()
+            # Only allow users to delete their own stocks
+            stock = StockDb.query.filter_by(id=stock_id, user_id=user_id).first()
             
             if stock:
                 db.session.delete(stock)
                 db.session.commit()
                 flash('Stock removed successfully', 'alert-success')
             else:
-                flash('Stock not found', 'alert-danger')
+                flash('Stock not found or you do not have permission to delete it', 'alert-danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error removing stock: {str(e)}', 'alert-danger')
