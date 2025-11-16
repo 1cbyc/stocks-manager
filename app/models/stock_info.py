@@ -61,8 +61,15 @@ class StockInfo:
         except Exception as e:
             raise Exception(f"Error loading logo CSV: {str(e)}")
 
-    def get_full_name(self, stock_symbol):
-        """Get full company name for a stock symbol."""
+    def get_full_name(self, stock_symbol: str) -> dict:
+        """Get full company name for a stock symbol.
+        
+        Args:
+            stock_symbol: The stock ticker symbol (e.g., 'AAPL')
+            
+        Returns:
+            dict with 'company' and 'symbol' keys, or None if not found
+        """
         if not stock_symbol:
             return None
         
@@ -72,8 +79,15 @@ class StockInfo:
                 return stock
         return None
 
-    def get_logo_url(self, stock_symbol):
-        """Get logo URL for a stock symbol."""
+    def get_logo_url(self, stock_symbol: str) -> str:
+        """Get logo URL for a stock symbol.
+        
+        Args:
+            stock_symbol: The stock ticker symbol (e.g., 'AAPL')
+            
+        Returns:
+            Logo URL string, or None if not found
+        """
         if not stock_symbol:
             return None
         
