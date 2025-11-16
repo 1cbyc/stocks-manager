@@ -86,7 +86,6 @@ def main():
                 logo=info['logo'] or ''
             )
 
-            db.create_all()
             db.session.add(stock_db)
             db.session.commit()
 
