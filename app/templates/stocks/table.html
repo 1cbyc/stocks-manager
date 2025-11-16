@@ -39,12 +39,14 @@
 
                     {% for stock in stocks %}
                         {% set stock_yield = Stock.get_yield_of_single_stock(stock) %}
-                        {% set profit_prec = stock_yield['profit_prec'] %}
-                        {% set profit_in_usd = stock_yield['profit_in_usd'] %}
+                        {% set has_error = stock_yield.get('error', False) %}
+                        {% set profit_prec = stock_yield.get('profit_prec') %}
+                        {% set profit_in_usd = stock_yield.get('profit_in_usd') %}
+                        {% set total_value = stock_yield.get('total_value') %}
 
                         <tbody id="table-body">
 
-                            <tr class="text-nowrap myDIV">
+                            <tr class="text-nowrap myDIV {% if has_error %}table-warning{% endif %}">
                                 <td id="stock-img-td"><img id="stock-img" src="{{ stock.logo }}" alt=""/></td>
                                 <td class="text-uppercase">{{ stock.stock_symbol }}</td>
                                 <td>{{ stock.full_name }}</td>
@@ -55,18 +57,30 @@
                                 </td>
                                 <td class="n-val">
                                     <div class="num-container">
-                                        <span>$ </span>{{ "{:,.2f}".format(stock_yield['total_value']) }}
+                                        {% if has_error or total_value is none %}
+                                            <span class="text-muted">N/A</span>
+                                        {% else %}
+                                            <span>$ </span>{{ "{:,.2f}".format(total_value) }}
+                                        {% endif %}
                                     </div>
                                 </td>
 
                                 <td class="num n-val">
                                     <div class="num-container">
-                                        <span>$</span> {{ "{:,.2f}".format(profit_in_usd)|string }}
+                                        {% if has_error or profit_in_usd is none %}
+                                            <span class="text-muted">N/A</span>
+                                        {% else %}
+                                            <span>$</span> {{ "{:,.2f}".format(profit_in_usd)|string }}
+                                        {% endif %}
                                     </div>
                                 </td>
                                 <td class="num n-val">
                                     <div class="num-container">
-                                        {{ profit_prec|string + '%' }}
+                                        {% if has_error or profit_prec is none %}
+                                            <span class="text-muted">N/A</span>
+                                        {% else %}
+                                            {{ profit_prec|string + '%' }}
+                                        {% endif %}
                                     </div>
                                 </td>
 
