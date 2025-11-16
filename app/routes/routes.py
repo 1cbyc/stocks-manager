@@ -3,6 +3,7 @@ from app.forms.forms import AddStockForm
 from app.database.database import StockDb
 from app import db, oidc, app, okta_client
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
+from flask_wtf.csrf import validate_csrf, CSRFError
 
 stocks_blueprint = Blueprint('stocks', __name__)
 
@@ -137,12 +138,23 @@ def register():
 def remove_stock():
     if request.method == 'POST':
         try:
+            # Validate CSRF token
+            try:
+                validate_csrf(request.form.get('csrf_token'))
+            except CSRFError:
+                flash('Security token expired. Please try again.', 'alert-danger')
+                return redirect(url_for('stocks.main'))
+            
             user_id = oidc.user_getfield("sub") if oidc.user_loggedin else None
             if not user_id:
                 flash('Please log in to remove stocks', 'alert-danger')
                 return redirect(url_for('stocks.login'))
             
-            stock_id = request.form['stock_id']
+            stock_id = request.form.get('stock_id')
+            if not stock_id:
+                flash('Invalid request: stock ID missing', 'alert-danger')
+                return redirect(url_for('stocks.main'))
+            
             # Only allow users to delete their own stocks
             stock = StockDb.query.filter_by(id=stock_id, user_id=user_id).first()
             
