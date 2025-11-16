@@ -40,7 +40,15 @@ def main():
     total = Stock.get_total(stocks)
     form = AddStockForm()
 
-    if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
+        # Handle CSRF token validation errors
+        if not form.validate_on_submit():
+            # Form validation failed (includes CSRF)
+            if form.csrf_token.errors:
+                flash('Security token expired. Please try again.', 'alert-danger')
+            return redirect(url_for('stocks.main'))
+        
+        # Form is valid, proceed with stock addition
         try:
             stock_symbol = request.form['stock_symbol']
             num_of_shares = request.form['num_of_shares']
@@ -65,7 +73,7 @@ def main():
                 flash(str(e), 'alert-danger')
                 return redirect(url_for('stocks.main'))
 
-            # Check if stock already exists for this user
+            # Check if stock already exists for this user (handled by unique constraint, but check first for better UX)
             existing_stock = StockDb.query.filter_by(
                 user_id=user_id,
                 stock_symbol=info['stock_symbol']
@@ -86,8 +94,17 @@ def main():
                 logo=info['logo'] or ''
             )
 
-            db.session.add(stock_db)
-            db.session.commit()
+            try:
+                db.session.add(stock_db)
+                db.session.commit()
+            except Exception as db_error:
+                db.session.rollback()
+                # Check if it's a unique constraint violation
+                if 'unique_user_stock' in str(db_error) or 'UNIQUE constraint' in str(db_error):
+                    flash(f'{stock_symbol.upper()} is already in your portfolio', 'alert-warning')
+                else:
+                    flash(f'Database error: {str(db_error)}', 'alert-danger')
+                return redirect(url_for('stocks.main'))
 
             flash(f'{stock_symbol.upper()} stock was added successfully', 'alert-success')
             return redirect(url_for('stocks.main'))
