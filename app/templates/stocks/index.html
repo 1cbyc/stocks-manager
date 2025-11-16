@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block content %}
 
-<section class="clean-block clean-hero" style="background-image: url_for('static/img/pexels-photo-1055297.jpeg') ;color: rgba(26,33,61,0.45);margin: -42px;">
+<section class="clean-block clean-hero" style="background-image: url('{{ url_for('static', filename='img/pexels-photo-1055297.jpeg') }}');color: rgba(26,33,61,0.45);margin: -42px;">
             <div class="text" style="margin-bottom: 139px;">
                 <h2>Meet Stock Manager Pro<br></h2>
                 <p style="margin: 0px 0px 20px;">Keeping track of investments used to be a hassle.<br>Stock Manager Pro makes it simple.&nbsp;<br></p><button class="btn btn-outline-light btn-lg" type="button">Get Started</button></div>
