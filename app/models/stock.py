@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, Optional
+from typing import Dict
 from wallstreet import Stock as WS
 from app.models.stock_info import StockInfo
 
