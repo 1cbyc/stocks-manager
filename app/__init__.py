@@ -13,7 +13,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # Flask Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    raise ValueError("SECRET_KEY environment variable is required. Please set it in your .env file.")
+app.config['SECRET_KEY'] = secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///site.database')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
