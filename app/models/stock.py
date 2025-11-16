@@ -103,7 +103,7 @@ class Stock:
             )
 
     @classmethod
-    def get_total(cls, stocks):
+    def get_total(cls, stocks) -> Dict[str, float]:
         """
         Calculate total portfolio value and profit/loss.
         Handles cases where individual stock prices cannot be fetched.
