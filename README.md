@@ -2,8 +2,8 @@
 
 Stock portfolio manager built with Flask
 
-![Screen Shot 2020-10-05 at 18 22 12](https://user-images.githubusercontent.com/10364402/95099033-13ff6600-0738-11eb-8610-504ec3e297a6.png)
-![](https://user-images.githubusercontent.com/10364402/95098968-01852c80-0738-11eb-8f02-42939f5163b9.png)
+<!-- ![Screen Shot 2020-10-05 at 18 22 12](https://user-images.githubusercontent.com/10364402/95099033-13ff6600-0738-11eb-8610-504ec3e297a6.png)
+![](https://user-images.githubusercontent.com/10364402/95098968-01852c80-0738-11eb-8f02-42939f5163b9.png) -->
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
