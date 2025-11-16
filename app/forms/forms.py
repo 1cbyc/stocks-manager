@@ -4,13 +4,24 @@ from wtforms import StringField, SubmitField
 from app.models.stock_info import StockInfo
 
 
+# Cache StockInfo instance to avoid reloading CSV files
+_stock_info_cache = None
+
+def _get_stock_info():
+    """Get cached StockInfo instance."""
+    global _stock_info_cache
+    if _stock_info_cache is None:
+        _stock_info_cache = StockInfo()
+    return _stock_info_cache
+
+
 def validate_stock_symbol(form, field):
     """Validate that the stock symbol exists in our ticker database."""
     if not field.data:
         raise ValidationError('Stock symbol is required')
     
     try:
-        stock_info = StockInfo()
+        stock_info = _get_stock_info()
         if field.data.upper() not in [stock['symbol'] for stock in stock_info.tickers]:
             raise ValidationError(f'Stock "{field.data}" was not found')
     except Exception as e:
