@@ -100,7 +100,11 @@
                         <td>Total</td>
                         <td></td>
                         <td></td>
-                        <td></td>
+                        <td class="n-val">
+                            <div class="num-container">
+                                {{ "{:,.2f}".format(total.quantity) }}
+                            </div>
+                        </td>
                         <td class="n-val">
                             <div class="num-container">
                                 <span>$ </span>{{ "{:,.2f}".format(total.value) }}
